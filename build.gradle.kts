@@ -28,7 +28,7 @@ configurations.all {
 
 }
 
-val libName = "drilldotnet"
+val libName = "agent-connector"
 kotlin {
 
     targets {
@@ -46,15 +46,12 @@ kotlin {
         mingwX64 {
             binaries.all { linkerOpts("-lpsapi", "-lwsock32", "-lws2_32", "-lmswsock") }
             binaries.sharedLib(libName, setOf(DEBUG))
-            binaries.staticLib(libName, setOf(DEBUG))
         }
         linuxX64 {
             binaries.sharedLib(libName, setOf(DEBUG))
-            binaries.staticLib(libName, setOf(DEBUG))
         }
         macosX64 {
             binaries.sharedLib(libName, setOf(DEBUG))
-            binaries.staticLib(libName, setOf(DEBUG))
         }
     }
 
@@ -72,7 +69,7 @@ afterEvaluate {
                 distributionBaseName.set(name)
                 contents {
                     from(tasks.getByPath("link${libName.capitalize()}DebugShared${name.capitalize()}"))
-                    from(tasks.getByPath("link${libName.capitalize()}DebugStatic${name.capitalize()}"))
+                    from("build/install/$name")
                 }
             }
         }

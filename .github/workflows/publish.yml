@@ -23,6 +23,16 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: install
+        run: |
+          gradle installMingwX64Dist
+      - name: ls
+        working-directory: ./build/install/mingwX64
+        run: dir
+      - name: make lib
+        working-directory: ./build/install/mingwX64
+        run: lib /def:agent_connector.def /out:agent-connector.lib
       - name: Publish
         run: |
           gradle -si publishMingwX64ZipPublicationToMavenRepository
