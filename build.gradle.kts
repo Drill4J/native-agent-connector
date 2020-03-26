@@ -45,13 +45,13 @@ kotlin {
         }
         mingwX64 {
             binaries.all { linkerOpts("-lpsapi", "-lwsock32", "-lws2_32", "-lmswsock") }
-            binaries.sharedLib(libName, setOf(DEBUG))
+            binaries.sharedLib(libName, setOf(DEBUG, RELEASE))
         }
         linuxX64 {
-            binaries.sharedLib(libName, setOf(DEBUG))
+            binaries.sharedLib(libName, setOf(DEBUG, RELEASE))
         }
         macosX64 {
-            binaries.sharedLib(libName, setOf(DEBUG))
+            binaries.sharedLib(libName, setOf(DEBUG, RELEASE))
         }
     }
 
