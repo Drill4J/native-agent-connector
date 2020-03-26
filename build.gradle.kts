@@ -28,7 +28,7 @@ configurations.all {
 
 }
 
-val libName = "agent-connector"
+val libName = "agent_connector"
 kotlin {
 
     targets {
