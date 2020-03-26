@@ -1,5 +1,5 @@
 #include <iostream>
-#include <libdrilldotnet_api.h>
+#include <agent_connector_api.h>
 
 
 
@@ -10,7 +10,7 @@ void xx(char* x1, char* x2){
 
 int main() {
 
-    libdrilldotnet_ExportedSymbols *ptr = libdrilldotnet_symbols();
+    agent_connector_ExportedSymbols *ptr = agent_connector_symbols();
     void (*fun)(char *, char *) = xx;
     void *function = (void *)(fun);
     initialize_agent("mysuperAgent", "localhost:8090", "1.0.0", "group", "fail",function);

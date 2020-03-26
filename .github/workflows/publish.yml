@@ -32,7 +32,7 @@ jobs:
         run: dir
       - name: make lib
         working-directory: ./build/install/mingwX64
-        run: lib /def:agent_connector.def /out:agent-connector.lib
+        run: lib /def:agent_connector.def /out:agent_connector.lib
       - name: Publish
         run: |
           gradle -si publishMingwX64ZipPublicationToMavenRepository
