@@ -24,18 +24,29 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - uses: ilammy/msvc-dev-cmd@v1
-      - name: install
+      - name: installDebug
         run: |
-          gradle installMingwX64Dist
-      - name: ls
-        working-directory: ./build/install/mingwX64
+          gradle installMingwX64DebugDist
+      - name: lsdebug
+        working-directory: ./build/install/mingwX64Debug
         run: dir
-      - name: make lib
-        working-directory: ./build/install/mingwX64
+      - name: make debug lib
+        working-directory: ./build/install/mingwX64Debug
+        run: lib /def:agent_connector.def /machine:X64 /out:agent_connector.lib
+
+      - name: installRelease
+        run: |
+          gradle installMingwX64ReleaseDist
+      - name: lsrelease
+        working-directory: ./build/install/mingwX64Release
+        run: dir
+      - name: make release lib
+        working-directory: ./build/install/mingwX64Release
         run: lib /def:agent_connector.def /machine:X64 /out:agent_connector.lib
       - name: Publish
         run: |
-          gradle -si publishMingwX64ZipPublicationToMavenRepository
+          gradle -si publishMingwX64DebugZipPublicationToMavenRepository
+          gradle -si publishMingwX64ReleaseZipPublicationToMavenRepository
         env:
           BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
           BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
