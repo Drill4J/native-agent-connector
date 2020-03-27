@@ -59,17 +59,27 @@ kotlin {
 
 afterEvaluate {
     val availableTarget =
-        kotlin.targets.filterIsInstance<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().filter { org.jetbrains.kotlin.konan.target.HostManager()
-            .isEnabled(it.konanTarget) }
+        kotlin.targets.filterIsInstance<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget>().filter {
+            org.jetbrains.kotlin.konan.target.HostManager()
+                .isEnabled(it.konanTarget)
+        }
 
     distributions {
         availableTarget.forEach {
-            val name = it.name
-            create(name) {
-                distributionBaseName.set(name)
+            val debugName = it.name + "Debug"
+            create(debugName) {
+                distributionBaseName.set(debugName)
                 contents {
-                    from(tasks.getByPath("link${libName.capitalize()}DebugShared${name.capitalize()}"))
-                    from("build/install/$name")
+                    from(tasks.getByPath("link${libName.capitalize()}DebugShared${it.name.capitalize()}"))
+                    from("build/install/$debugName")
+                }
+            }
+            val releaseName = it.name + "Release"
+            create(releaseName) {
+                distributionBaseName.set(releaseName)
+                contents {
+                    from(tasks.getByPath("link${libName.capitalize()}ReleaseShared${it.name.capitalize()}"))
+                    from("build/install/$releaseName")
                 }
             }
         }
@@ -94,9 +104,13 @@ afterEvaluate {
 
         publications {
             availableTarget.forEach {
-                create<MavenPublication>("${it.name}Zip") {
-                    artifactId = "$libName-${it.name}"
-                    artifact(tasks["${it.name}DistZip"])
+                create<MavenPublication>("${it.name}DebugZip") {
+                    artifactId = "$libName-${it.name}-debug"
+                    artifact(tasks["${it.name}DebugDistZip"])
+                }
+                create<MavenPublication>("${it.name}ReleaseZip") {
+                    artifactId = "$libName-${it.name}-release"
+                    artifact(tasks["${it.name}ReleaseDistZip"])
                 }
             }
         }
