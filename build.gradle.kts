@@ -1,20 +1,24 @@
 plugins {
-    id("org.jetbrains.kotlin.multiplatform") version ("1.3.70")
-    id("com.epam.drill.cross-compilation") version "0.16.0"
+    id("org.jetbrains.kotlin.multiplatform")
+    id("com.epam.drill.cross-compilation")
     distribution
     `maven-publish`
 }
 
+val scriptUrl: String by extra
 val ktorLibsVersion: String by extra
 val coroutinesVersion: String by extra
 val drillTransportLibVersion: String by extra
 val drillApiVersion: String by extra
 val drillAgentCoreVersion: String by extra
+val drillLoggerVersion: String by extra
 
+apply(from = "$scriptUrl/git-version.gradle.kts")
 
 repositories {
     mavenLocal()
     mavenCentral()
+    apply(from = "$scriptUrl/maven-repo.gradle.kts")
     jcenter()
     maven(url = "https://dl.bintray.com/kotlin/kotlinx/")
     maven(url = "https://dl.bintray.com/kotlin/ktor/")
@@ -23,7 +27,7 @@ repositories {
 
 configurations.all {
     resolutionStrategy.dependencySubstitution {
-        substitute(module("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")).with(module("com.epam.drill.fork.coroutines:kotlinx-coroutines-core-native:$coroutinesVersion"))
+        substitute(module("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")).with(module("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion-native-mt"))
     }
 
 }
@@ -38,6 +42,8 @@ kotlin {
                     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
                     implementation("com.epam.drill.transport:core:$drillTransportLibVersion")
                     implementation("com.epam.drill:common:$drillApiVersion")
+                    implementation("com.epam.drill:common:$drillApiVersion")
+                    implementation("com.epam.drill.logger:logger:$drillLoggerVersion")
                     implementation("com.epam.drill.agent:agent:$drillAgentCoreVersion")
 
                 }
@@ -63,7 +69,6 @@ afterEvaluate {
             org.jetbrains.kotlin.konan.target.HostManager()
                 .isEnabled(it.konanTarget)
         }
-
     distributions {
         availableTarget.forEach {
             val debugName = it.name + "Debug"
@@ -85,22 +90,6 @@ afterEvaluate {
         }
     }
     publishing {
-        repositories {
-            maven {
-
-                url = uri("http://oss.jfrog.org/oss-release-local")
-                credentials {
-                    username =
-                        if (project.hasProperty("bintrayUser"))
-                            project.property("bintrayUser").toString()
-                        else System.getenv("BINTRAY_USER")
-                    password =
-                        if (project.hasProperty("bintrayApiKey"))
-                            project.property("bintrayApiKey").toString()
-                        else System.getenv("BINTRAY_API_KEY")
-                }
-            }
-        }
 
         publications {
             availableTarget.forEach {

@@ -1,8 +1,7 @@
-name: Build & publish drill native-connector
+name: Publish
 on:
-  push:
-    branches:
-      - master
+  release:
+    types: [published]
 
 jobs:
   build_and_publish_for_nix:
