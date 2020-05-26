@@ -52,6 +52,9 @@ kotlin {
         mingwX64 {
             binaries.all { linkerOpts("-lpsapi", "-lwsock32", "-lws2_32", "-lmswsock") }
             binaries.sharedLib(libName, setOf(DEBUG, RELEASE))
+            binaries.executable {
+                baseName = "connector"
+            }
         }
         linuxX64 {
             binaries.sharedLib(libName, setOf(DEBUG, RELEASE))
