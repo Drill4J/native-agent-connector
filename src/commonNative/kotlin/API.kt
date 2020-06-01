@@ -1,15 +1,17 @@
 package drill
 
-import com.epam.drill.common.*
-import com.epam.drill.core.*
-import com.epam.drill.core.plugin.dto.*
-import com.epam.drill.core.ws.*
+import com.epam.drill.common.Message
+import com.epam.drill.common.MessageType
+import com.epam.drill.core.drillRequest
+import com.epam.drill.core.plugin.dto.DrillMessage
+import com.epam.drill.core.plugin.dto.MessageWrapper
+import com.epam.drill.core.ws.Sender
 import kotlinx.cinterop.*
-import kotlinx.serialization.protobuf.*
+import kotlinx.serialization.protobuf.ProtoBuf
 
 
 @CName("initialize_agent")
- fun initializeAgent(
+fun initializeAgent(
     agentId: String,
     adminAddress: String,
     buildVersion: String = "unspecified",
@@ -35,8 +37,8 @@ import kotlinx.serialization.protobuf.*
     wsock.connect()
 }
 
-@CName("sendMessage")
-fun sendMessage(pluginId: String, content: String) {
+@CName("sendPluginMessage")
+fun sendPluginMessage(pluginId: String, content: String) {
     val drillMessage = DrillMessage(drillRequest()?.drillSessionId ?: "", content)
     Sender.send(
         Message(
@@ -45,4 +47,16 @@ fun sendMessage(pluginId: String, content: String) {
             ProtoBuf.dump(MessageWrapper.serializer(), MessageWrapper(pluginId, drillMessage))
         )
     )
+}
+
+@CName("sendMessage")
+fun sendMessage(messageType: String, destination: String, content: String) {
+    Sender.send(
+        Message(
+            MessageType.valueOf(messageType),
+            destination,
+            content.encodeToByteArray()
+        )
+    )
+
 }
