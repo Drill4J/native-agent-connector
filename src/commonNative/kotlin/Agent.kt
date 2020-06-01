@@ -5,6 +5,7 @@ import com.epam.drill.common.*
 import com.epam.drill.common.ws.*
 import com.epam.drill.core.transport.*
 import com.epam.drill.core.ws.*
+import com.epam.drill.interceptor.logger
 import com.epam.drill.logger.*
 import kotlinx.cinterop.*
 import kotlinx.serialization.protobuf.*
@@ -47,6 +48,13 @@ fun createWebSocket(handler: (String, ByteArray) -> Unit): WsSocket {
                 val message = it.toWsMessage()
                 val destination = message.destination
                 handler(destination, message.data)
+                Sender.send(
+                    Message(
+                        MessageType.MESSAGE_DELIVERED,
+                        destination
+                    )
+                )
+                logger.debug { "Delivered for $destination" }
             }
         },
         onStringMessage = {},
