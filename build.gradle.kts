@@ -74,20 +74,18 @@ afterEvaluate {
         }
     distributions {
         availableTarget.forEach {
-            val debugName = it.name + "Debug"
-            create(debugName) {
-                distributionBaseName.set(debugName)
-                contents {
-                    from(tasks.getByPath("link${libName.capitalize()}DebugShared${it.name.capitalize()}"))
-                    from("build/install/$debugName")
-                }
-            }
-            val releaseName = it.name + "Release"
-            create(releaseName) {
-                distributionBaseName.set(releaseName)
-                contents {
-                    from(tasks.getByPath("link${libName.capitalize()}ReleaseShared${it.name.capitalize()}"))
-                    from("build/install/$releaseName")
+            sequenceOf("Debug", "Release").forEach { buildType ->
+                val distributionName = it.name + buildType
+                create(distributionName) {
+                    distributionBaseName.set(distributionName)
+                    contents {
+                        from(tasks.getByPath("link${libName.capitalize()}${buildType}Shared${it.name.capitalize()}")) {
+                            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                        }
+                        from("build/install/$distributionName") {
+                            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+                        }
+                    }
                 }
             }
         }
