@@ -5,7 +5,7 @@ import com.epam.drill.common.*
 import com.epam.drill.common.ws.*
 import com.epam.drill.core.transport.*
 import com.epam.drill.core.ws.*
-import com.epam.drill.interceptor.logger
+import com.epam.drill.interceptor.*
 import com.epam.drill.logger.*
 import kotlinx.cinterop.*
 import kotlinx.serialization.protobuf.*
@@ -14,6 +14,8 @@ import kotlin.native.concurrent.*
 
 @SharedImmutable
 val AGENT_TYPE: AgentType = AgentType.DOTNET
+
+const val PLUGIN_ID = "test2code"
 
 fun init(
     agentId: String,
@@ -47,19 +49,36 @@ fun createWebSocket(handler: (String, ByteArray) -> Unit): WsSocket {
             memScoped {
                 val message = it.toWsMessage()
                 val destination = message.destination
+                logger.debug { "Binary,  dest=$destination" }
                 handler(destination, message.data)
-                Sender.send(
-                    Message(
-                        MessageType.MESSAGE_DELIVERED,
-                        destination
-                    )
-                )
-                logger.debug { "Delivered for $destination" }
+                delivered(destination)
             }
         },
-        onStringMessage = {},
+        onStringMessage = { str ->
+            memScoped {
+                val messageJson = json.parseJson(str).jsonObject
+                val destination = messageJson.getPrimitive("destination").content
+                logger.debug { "Text,  dest=$destination" }
+                val text = messageJson.getPrimitive("text").content
+                handler(destination, text.encodeToByteArray())
+                delivered(destination)
+                if (destination == "/agent/load") {
+                    delivered("/agent/plugin/$PLUGIN_ID/loaded")
+                }
+            }
+        },
         onAnyMessage = {}
     )
+}
+
+private fun delivered(destination: String) {
+    Sender.send(
+        Message(
+            MessageType.MESSAGE_DELIVERED,
+            destination
+        )
+    )
+    logger.debug { "Delivered for $destination" }
 }
 
 
