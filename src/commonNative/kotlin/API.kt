@@ -1,13 +1,10 @@
 package drill
 
-import com.epam.drill.common.Message
-import com.epam.drill.common.MessageType
-import com.epam.drill.core.drillRequest
-import com.epam.drill.core.plugin.dto.DrillMessage
-import com.epam.drill.core.plugin.dto.MessageWrapper
-import com.epam.drill.core.ws.Sender
+import com.epam.drill.common.*
+import com.epam.drill.core.*
+import com.epam.drill.core.plugin.dto.*
+import com.epam.drill.core.ws.*
 import kotlinx.cinterop.*
-import kotlinx.serialization.protobuf.ProtoBuf
 
 
 @CName("initialize_agent")
@@ -42,9 +39,10 @@ fun sendPluginMessage(pluginId: String, content: String) {
     val drillMessage = DrillMessage(drillRequest()?.drillSessionId ?: "", content)
     Sender.send(
         Message(
-            MessageType.PLUGIN_DATA,
-            "",
-            ProtoBuf.dump(MessageWrapper.serializer(), MessageWrapper(pluginId, drillMessage))
+            type = MessageType.PLUGIN_DATA,
+            data = json.stringify(
+                MessageWrapper.serializer(), MessageWrapper(pluginId, drillMessage)
+            ).encodeToByteArray()
         )
     )
 }

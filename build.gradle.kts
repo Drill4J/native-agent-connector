@@ -1,5 +1,6 @@
 plugins {
-    id("org.jetbrains.kotlin.multiplatform")
+    kotlin("multiplatform")
+    kotlin("plugin.serialization")
     id("com.epam.drill.cross-compilation")
     distribution
     `maven-publish`
@@ -8,6 +9,7 @@ plugins {
 val scriptUrl: String by extra
 val ktorLibsVersion: String by extra
 val coroutinesVersion: String by extra
+val serializationRuntimeVersion: String by extra
 val drillTransportLibVersion: String by extra
 val drillApiVersion: String by extra
 val drillAgentCoreVersion: String by extra
@@ -39,9 +41,9 @@ kotlin {
         crossCompilation {
             common {
                 dependencies {
+                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationRuntimeVersion")
                     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
                     implementation("com.epam.drill.transport:core:$drillTransportLibVersion")
-                    implementation("com.epam.drill:common:$drillApiVersion")
                     implementation("com.epam.drill:common:$drillApiVersion")
                     implementation("com.epam.drill.logger:logger:$drillLoggerVersion")
                     implementation("com.epam.drill.agent:agent:$drillAgentCoreVersion")
