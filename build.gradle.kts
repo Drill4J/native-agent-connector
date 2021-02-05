@@ -1,7 +1,10 @@
+import java.net.*
+
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("com.epam.drill.cross-compilation")
+    id("com.github.hierynomus.license")
     distribution
     `maven-publish`
 }
@@ -108,3 +111,13 @@ afterEvaluate {
         }
     }
 }
+
+val licenseFormatSettings by tasks.registering(com.hierynomus.gradle.license.tasks.LicenseFormat::class) {
+    source = fileTree(project.projectDir).also {
+        include("**/*.kt", "**/*.java", "**/*.groovy")
+        exclude("**/.idea")
+    }.asFileTree
+    headerURI = URI("https://raw.githubusercontent.com/Drill4J/drill4j/develop/COPYRIGHT")
+}
+
+tasks["licenseFormat"].dependsOn(licenseFormatSettings)
