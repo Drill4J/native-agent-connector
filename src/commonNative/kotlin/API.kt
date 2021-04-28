@@ -1,10 +1,9 @@
 package drill
 
 import com.epam.drill.common.*
-import com.epam.drill.core.*
-import com.epam.drill.core.plugin.dto.*
 import com.epam.drill.core.ws.*
-import kotlinx.cinterop.*
+import com.epam.drill.plugin.api.message.*
+import kotlinx.serialization.json.*
 
 
 @CName("initialize_agent")
@@ -14,33 +13,25 @@ fun initializeAgent(
     buildVersion: String = "unspecified",
     groupId: String = "",
     instanceId: String = "random",
-    function: CPointer<CFunction<(CPointer<ByteVar>, CPointer<ByteVar>) -> Unit>>
 ) {
     init(
         agentId = agentId,
-        adminAddress = adminAddress,
+        adminAddr = adminAddress,
         buildVersion = buildVersion,
         groupId = groupId,
         instanceId = instanceId
     )
-    val wsock = createWebSocket { dest, data ->
-        memScoped {
-            function.pointed.ptr.invoke(
-                dest.cstr.getPointer(this),
-                data.decodeToString().cstr.getPointer(this)
-            )
-        }
-    }
+    val wsock = WsSocket()
     wsock.connect()
 }
 
 @CName("sendPluginMessage")
 fun sendPluginMessage(pluginId: String, content: String) {
-    val drillMessage = DrillMessage(drillRequest()?.drillSessionId ?: "", content)
+    val drillMessage = DrillMessage(content)
     Sender.send(
         Message(
             type = MessageType.PLUGIN_DATA,
-            data = json.stringify(
+            data = Json.encodeToString(
                 MessageWrapper.serializer(), MessageWrapper(pluginId, drillMessage)
             ).encodeToByteArray()
         )
@@ -56,5 +47,4 @@ fun sendMessage(messageType: String, destination: String, content: String) {
             content.encodeToByteArray()
         )
     )
-
 }
