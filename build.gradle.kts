@@ -27,13 +27,6 @@ repositories {
     maven(url = "https://oss.jfrog.org/artifactory/list/oss-release-local")
 }
 
-configurations.all {
-    resolutionStrategy.dependencySubstitution {
-        substitute(module("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")).with(module("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion-native-mt"))
-    }
-
-}
-
 val libName = "agent_connector"
 kotlin {
 
@@ -41,13 +34,14 @@ kotlin {
         crossCompilation {
             common {
                 dependencies {
-                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serializationRuntimeVersion")
-                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutinesVersion")
-                    implementation("com.epam.drill.transport:core:$drillTransportLibVersion")
+                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationRuntimeVersion")
+                    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion") {
+                        version { strictly("$coroutinesVersion-native-mt") }
+                    }
+                    implementation("com.epam.drill:transport:$drillTransportLibVersion")
                     implementation("com.epam.drill:common:$drillApiVersion")
                     implementation("com.epam.drill.logger:logger:$drillLoggerVersion")
                     implementation("com.epam.drill.agent:agent:$drillAgentCoreVersion")
-
                 }
             }
         }
@@ -66,6 +60,10 @@ kotlin {
         }
     }
 
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile> {
+    kotlinOptions.freeCompilerArgs += "-Xuse-experimental=kotlinx.serialization.ExperimentalSerializationApi"
 }
 
 afterEvaluate {

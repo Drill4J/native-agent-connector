@@ -1,7 +1,9 @@
-import com.epam.drill.common.*
+import com.epam.drill.core.ws.*
+import com.epam.drill.ws.*
 import drill.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
 @Serializable
 sealed class CoverMessage
@@ -39,10 +41,14 @@ data class AstMethod(
 )
 
 fun main(): Unit = runBlocking {
-    println(json.stringify(CoverMessage.serializer(), InitInfo(1, "", true)))
-    init(agentId = "nag", adminAddress = "localhost:8090")
-    createWebSocket { dest, data ->
-        println("<<<dest=$dest\n${data.decodeToString()}\n")
+    logger.info { Json.encodeToString(CoverMessage.serializer(), InitInfo(1, "", true)) }
+    init(agentId = "nag", adminAddr = "localhost:8090")
+    WsSocket().connect()
+    ws.value?.onBinaryMessage { rawMessage ->
+        logger.info { "MESSAGE: ${rawMessage.decodeToString()}" }
+        val message = rawMessage.toWsMessage()
+        val dest = message.destination
+        logger.info { "<<<dest=$dest\n${message.data.decodeToString()}\n" }
         when (dest) {
             "/agent/load" -> {
                 InitInfo(0, "", true).send()
@@ -58,15 +64,15 @@ fun main(): Unit = runBlocking {
                 Initialized("").send()
             }
         }
-    }.connect()
+    }
     while (true) {
         delay(1000L)
     }
 }
 
 
-private fun CoverMessage.send() {
-    val json = json.stringify(CoverMessage.serializer(), this)
-    sendPluginMessage("test2code", json)
-    println(">>>plugin: test2code, json=$json")
+fun CoverMessage.send() {
+    val json = Json.encodeToString(CoverMessage.serializer(), this)
+    sendPluginMessage(PLUGIN_ID, json)
+    logger.info { ">>>plugin: test2code, json=$json" }
 }

@@ -1,10 +1,11 @@
 package drill
 
 import com.epam.drill.common.*
-import com.epam.drill.core.*
-import com.epam.drill.core.plugin.dto.*
 import com.epam.drill.core.ws.*
+import com.epam.drill.plugin.api.message.*
+import com.epam.drill.ws.*
 import kotlinx.cinterop.*
+import kotlinx.serialization.json.*
 
 
 @CName("initialize_agent")
@@ -18,29 +19,33 @@ fun initializeAgent(
 ) {
     init(
         agentId = agentId,
-        adminAddress = adminAddress,
+        adminAddr = adminAddress,
         buildVersion = buildVersion,
         groupId = groupId,
         instanceId = instanceId
     )
-    val wsock = createWebSocket { dest, data ->
+    val wsock = WsSocket()
+    wsock.connect()
+    ws.value?.onBinaryMessage { rawMessage ->
+        val message = rawMessage.toWsMessage()
+        val dest = message.destination
+        val data = message.data
         memScoped {
             function.pointed.ptr.invoke(
                 dest.cstr.getPointer(this),
                 data.decodeToString().cstr.getPointer(this)
             )
         }
-    }
-    wsock.connect()
+    } ?: logger.warn { "WebSocket was not initialized" }
 }
 
 @CName("sendPluginMessage")
 fun sendPluginMessage(pluginId: String, content: String) {
-    val drillMessage = DrillMessage(drillRequest()?.drillSessionId ?: "", content)
+    val drillMessage = DrillMessage(content)
     Sender.send(
         Message(
             type = MessageType.PLUGIN_DATA,
-            data = json.stringify(
+            data = Json.encodeToString(
                 MessageWrapper.serializer(), MessageWrapper(pluginId, drillMessage)
             ).encodeToByteArray()
         )
@@ -56,5 +61,4 @@ fun sendMessage(messageType: String, destination: String, content: String) {
             content.encodeToByteArray()
         )
     )
-
 }
